@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   args.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: cbeaurai <marvin@42.fr>                    +#+  +:+       +#+        */
+/*   By: cbeaurai <cbeaurai@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/24 12:13:54 by cbeaurai          #+#    #+#             */
-/*   Updated: 2021/09/27 16:28:25 by cbeaurai         ###   ########.fr       */
+/*   Updated: 2022/01/15 00:22:20 by cbeaurai         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -78,6 +78,8 @@ void	ft_check_access(t_vars *vars)
 	while (vars->path[++i])
 	{
 		temp = ft_strjoin(vars->path[i], vars->arg1[0]);
+		if (temp == NULL)
+			ft_exit_command(vars);
 		if (access(temp, X_OK) == 0)
 			res = 1;
 		free(temp);
@@ -86,6 +88,8 @@ void	ft_check_access(t_vars *vars)
 	while (vars->path[++i])
 	{
 		temp = ft_strjoin(vars->path[i], vars->arg2[0]);
+		if (temp == NULL)
+			ft_exit_command(vars);
 		if (access(temp, X_OK) == 0)
 			res2 = 1;
 		free(temp);
@@ -123,6 +127,20 @@ void	ft_add_path(t_vars *vars)
 	}
 }
 
+int		is_only_space(char *str)
+{
+	int i;
+
+	i = 0;
+	while (str[i])
+	{
+		if (str[i] != ' ')
+			return (0);
+		i++;
+	}
+	return (1);
+}
+
 t_vars	*ft_setup_args(char **av, char **envp)
 {
 	t_vars	*vars;
@@ -130,15 +148,20 @@ t_vars	*ft_setup_args(char **av, char **envp)
 	vars = malloc(sizeof(t_vars));
 	if (vars == NULL)
 		ft_wrong_malloc();
+	vars->fd2 = 0;
 	vars->fd1 = ft_open_file_read(av[1]);
-	if (vars->fd1 < 0)
-		ft_exit_file(vars);
 	vars->fd2 = ft_open_file_write_create(av[4]);
 	if (vars->fd1 < 0 || vars ->fd2 < 0)
 		ft_exit_file(vars);
 	vars->path = ft_get_paths(envp);
-	vars->arg1 = ft_split(av[2], ' ');
-	vars->arg2 = ft_split(av[3], ' ');
+	if (is_only_space(av[2]) == 1)
+		vars->arg1 = ft_split(av[2], 'e');//e est choisi au hasard, on veut juste simuler un tableau de char* avec une seule chaine qui contient av[2] 
+	else
+		vars->arg1 = ft_split(av[2], ' ');
+	if (is_only_space(av[3]) == 1)
+		vars->arg2 = ft_split(av[3], 'e'); 
+	else
+		vars->arg2 = ft_split(av[3], ' ');
 	ft_check_access(vars);
 	ft_add_path(vars);
 	if (vars->path == NULL || vars->arg1 == NULL || vars->arg2 == NULL)
